@@ -2,12 +2,15 @@
 import { ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCarteiraStore } from '@/stores/carteira'
+import { useIsMobile } from '@/composables/useIsMobile'
 import AppSidebar from './AppSidebar.vue'
 import AppTopbar from './AppTopbar.vue'
 import ModalImportacao from '@/components/importacao/ModalImportacao.vue'
+import MobileDashboard from '@/pages/MobileDashboard.vue'
 
 const authStore = useAuthStore()
 const carteiraStore = useCarteiraStore()
+const { isMobile } = useIsMobile()
 
 const modalImportacaoAberto = ref(false)
 
@@ -24,7 +27,11 @@ watch(
 </script>
 
 <template>
-  <div class="app-shell">
+  <!-- Mobile: dashboard nativo sem sidebar/topbar -->
+  <MobileDashboard v-if="isMobile" />
+
+  <!-- Desktop: layout padrão com sidebar e topbar -->
+  <div v-else class="app-shell">
     <AppSidebar />
     <AppTopbar @importar="modalImportacaoAberto = true" />
 
