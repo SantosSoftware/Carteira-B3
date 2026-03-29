@@ -2,11 +2,12 @@
 import { ref, computed, watch } from 'vue'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
-import { useCarteiraStore }  from '@/stores/carteira'
-import { useAuthStore }      from '@/stores/auth'
-import { useCotacaoStore }   from '@/stores/cotacao'
-import { useProventosStore } from '@/stores/proventos'
-import { isDerivativo }      from '@/utils/calculos'
+import { useCarteiraStore }    from '@/stores/carteira'
+import { useAuthStore }        from '@/stores/auth'
+import { useCotacaoStore }     from '@/stores/cotacao'
+import { useProventosStore }   from '@/stores/proventos'
+import { useAtivosManualStore } from '@/stores/ativosManual'
+import { isDerivativo }        from '@/utils/calculos'
 import { formatarMoeda, sinalPercentual, formatarData } from '@/utils/formatters'
 
 ChartJS.register(ArcElement, Tooltip)
@@ -15,6 +16,7 @@ const carteiraStore  = useCarteiraStore()
 const authStore      = useAuthStore()
 const cotacaoStore   = useCotacaoStore()
 const proventosStore = useProventosStore()
+const manualStore    = useAtivosManualStore()
 
 // Safety net: garante o carregamento da carteira mesmo que AppLayout
 // ainda não tenha terminado (timing em mobile / primeiro acesso)
@@ -28,10 +30,14 @@ watch(
   { immediate: true },
 )
 
-// Carrega proventos quando a carteira estiver pronta
+// Carrega proventos e ativos manuais quando a carteira estiver pronta
 watch(
   () => carteiraStore.carteira?.id,
-  async (id) => { if (id && !proventosStore.proventos.length) await proventosStore.carregar(id) },
+  async (id) => {
+    if (!id) return
+    if (!proventosStore.proventos.length) await proventosStore.carregar(id)
+    if (!manualStore.ativos.length)       await manualStore.carregar(id)
+  },
   { immediate: true },
 )
 
@@ -57,10 +63,10 @@ async function atualizarCotacoes() {
   atualizando.value = false
 }
 
-// ── Métricas ───────────────────────────────────────────────────────────────
-const patrimonioTotal = computed(() => carteiraStore.patrimonioTotal)
+// ── Métricas consolidadas (B3 + outros ativos manuais) ────────────────────
+const patrimonioTotal = computed(() => carteiraStore.patrimonioTotal + manualStore.totalGeral)
 const rentabilidade   = computed(() => carteiraStore.rentabilidadeGlobal)
-const resultado       = computed(() => carteiraStore.patrimonioTotal - carteiraStore.valorInvestido)
+const resultado       = computed(() => patrimonioTotal.value - carteiraStore.valorInvestido)
 
 // Variação média ponderada do dia (via cotação cache)
 const variacaoDia = computed(() => {
