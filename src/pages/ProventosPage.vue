@@ -142,7 +142,7 @@ const chartOptions = {
     tooltip: {
       callbacks: {
         label: (ctx: TooltipItem<'bar'>) =>
-          ` ${ctx.dataset.label ?? ''}: ${formatarMoeda(ctx.parsed.y)}`,
+          ` ${ctx.dataset.label ?? ''}: ${formatarMoeda(ctx.parsed.y ?? 0)}`,
       },
     },
   },
