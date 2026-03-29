@@ -96,7 +96,7 @@ export const useCarteiraStore = defineStore('carteira', () => {
 
     if (importacoes.value.length) {
       // Carrega posições de TODAS as importações com a data mais recente
-      const dataRecente = importacoes.value[0].data_posicao
+      const dataRecente = importacoes.value[0]?.data_posicao ?? ''
       const idsRecentes = importacoes.value
         .filter((i) => i.data_posicao === dataRecente)
         .map((i) => i.id)
@@ -183,7 +183,7 @@ export const useCarteiraStore = defineStore('carteira', () => {
       tipo_ativo: a.tipo_ativo,
       quantidade: a.quantidade,
       preco_medio: a.preco_medio,
-      preco_atual: a.preco_atual,
+      preco_atual: (a as AtivoCalculado).preco_atual,
       valor_investido: a.valor_investido,
       valor_atual: a.valor_atual,
       rentabilidade_percentual: a.rentabilidade_percentual,

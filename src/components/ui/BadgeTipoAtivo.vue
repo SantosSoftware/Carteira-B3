@@ -9,17 +9,18 @@ const ESTILOS: Record<string, { bg: string; color: string; label: string }> = {
   RendaFixa: { bg: '#fef3c7', color: '#92400e', label: 'Renda Fixa' },
   Outro:     { bg: '#f3f4f6', color: '#6b7280', label: 'Outro' },
 }
+const ESTILO_FALLBACK = { bg: '#f3f4f6', color: '#6b7280', label: 'Outro' }
 </script>
 
 <template>
   <span
     class="badge-tipo"
     :style="{
-      background: (ESTILOS[tipo] ?? ESTILOS.Outro).bg,
-      color: (ESTILOS[tipo] ?? ESTILOS.Outro).color,
+      background: (ESTILOS[tipo] ?? ESTILO_FALLBACK).bg,
+      color: (ESTILOS[tipo] ?? ESTILO_FALLBACK).color,
     }"
   >
-    {{ (ESTILOS[tipo] ?? ESTILOS.Outro).label }}
+    {{ (ESTILOS[tipo] ?? ESTILO_FALLBACK).label }}
   </span>
 </template>
 

@@ -70,7 +70,7 @@ async function excluir(id: string) {
               Posição: {{ formatarData(imp.data_posicao) }} ·
               Patrimônio:
               <strong>{{ store.patrimoniosPorImportacao[imp.id] !== undefined
-                ? formatarMoeda(store.patrimoniosPorImportacao[imp.id])
+                ? formatarMoeda(store.patrimoniosPorImportacao[imp.id] ?? 0)
                 : '—' }}</strong>
             </span>
           </div>

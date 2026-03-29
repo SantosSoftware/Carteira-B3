@@ -16,9 +16,10 @@ const COR_TIPO: Record<string, { bg: string; color: string }> = {
   RendaFixa: { bg: '#fef3c7', color: '#92400e' },
   Outro:     { bg: '#f3f4f6', color: '#6b7280' },
 }
+const COR_FALLBACK = { bg: '#f3f4f6', color: '#6b7280' }
 
 function corTipo(tipo: string) {
-  return COR_TIPO[tipo] ?? COR_TIPO.Outro
+  return COR_TIPO[tipo] ?? COR_FALLBACK
 }
 </script>
 

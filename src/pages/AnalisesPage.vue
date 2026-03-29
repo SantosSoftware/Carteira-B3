@@ -62,7 +62,7 @@ const barOptions = {
   },
   scales: {
     x: { grid: { color: '#F0F0F5' }, ticks: { callback: (v: unknown) => formatarMoeda(v as number), font: { size: 11 }, color: '#8492A6' } },
-    y: { grid: { display: false }, ticks: { font: { size: 12, weight: '600' as const }, color: '#1A1A2E' } },
+    y: { grid: { display: false }, ticks: { font: { size: 12, weight: 700 }, color: '#1A1A2E' } },
   },
 }
 
@@ -71,8 +71,9 @@ const rentabPorTipo = computed(() => {
   const mapa: Record<string, { somaInv: number; somaAtual: number }> = {}
   for (const a of store.ativos) {
     if (!mapa[a.tipo_ativo]) mapa[a.tipo_ativo] = { somaInv: 0, somaAtual: 0 }
-    mapa[a.tipo_ativo].somaInv += a.valor_investido
-    mapa[a.tipo_ativo].somaAtual += a.valor_atual
+    const entry = mapa[a.tipo_ativo]!
+    entry.somaInv += a.valor_investido
+    entry.somaAtual += a.valor_atual
   }
   return Object.entries(mapa).map(([tipo, v]) => ({
     tipo,

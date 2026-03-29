@@ -99,7 +99,7 @@ function resolverColuna(headers: string[], candidatos: string[]): string | null 
   const normHeaders = headers.map(normalizarChave)
   for (const candidato of candidatos) {
     const idx = normHeaders.indexOf(normalizarChave(candidato))
-    if (idx !== -1) return headers[idx]
+    if (idx !== -1) return headers[idx] ?? null
   }
   return null
 }
@@ -187,11 +187,12 @@ export function parsearPlanilhaB3(buffer: ArrayBuffer, nomeAba?: string): Result
   const workbook = XLSX.read(buffer, { type: 'array' })
 
   // Se não especificou aba, usa a primeira com dados
-  const sheetName = nomeAba
+  const sheetName: string = nomeAba
     ?? workbook.SheetNames.find((n) => numLinhasAba(workbook, n) > 2)
     ?? workbook.SheetNames[0]
+    ?? ''
 
-  if (!workbook.Sheets[sheetName]) {
+  if (!sheetName || !workbook.Sheets[sheetName]) {
     throw new Error(`Aba "${sheetName}" não encontrada no arquivo.`)
   }
 
@@ -199,13 +200,14 @@ export function parsearPlanilhaB3(buffer: ArrayBuffer, nomeAba?: string): Result
   const tipoForcado = tipoDetectadoPorNomeAba(sheetName)
 
   const sheet = workbook.Sheets[sheetName]
-  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' })
+  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet!, { defval: '' })
 
   if (!rows.length) {
     throw new Error(`A aba "${sheetName}" está vazia ou não contém dados reconhecíveis.`)
   }
 
-  const headers = Object.keys(rows[0])
+  const firstRow = rows[0]
+  const headers = firstRow ? Object.keys(firstRow) : []
 
   const colMap: Record<string, string | null> = {}
   for (const [campo, candidatos] of Object.entries(COLUMN_MAP)) {
@@ -265,6 +267,6 @@ export function parsearPlanilhaB3(buffer: ArrayBuffer, nomeAba?: string): Result
 
   return {
     ativos,
-    data_posicao: new Date().toISOString().split('T')[0],
+    data_posicao: new Date().toISOString().substring(0, 10),
   }
 }

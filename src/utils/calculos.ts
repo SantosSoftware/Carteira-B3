@@ -1,6 +1,7 @@
 import type { AtivoImportado } from '@/services/b3Parser'
 
 export interface AtivoCalculado extends AtivoImportado {
+  preco_atual: number
   valor_investido: number
   rentabilidade_percentual: number
 }

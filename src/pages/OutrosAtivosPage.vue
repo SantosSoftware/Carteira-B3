@@ -79,7 +79,7 @@ const drawerAberto     = ref(false)
 function abrirDrawer(ativo: AtivoManual) {
   ativoSelecionado.value = ativo
   drawerAberto.value     = true
-  formLanc.value         = { valor: '', data_lancamento: new Date().toISOString().split('T')[0], cotacao_usd: '', observacao: '' }
+  formLanc.value         = { valor: '', data_lancamento: new Date().toISOString().substring(0, 10), cotacao_usd: '', observacao: '' }
   erroLanc.value         = ''
 }
 
@@ -90,7 +90,7 @@ const lancamentosAtivo = computed(() =>
 )
 
 // ── Modal de novo lançamento ──────────────────────────────────────────────
-const formLanc      = ref({ valor: '', data_lancamento: new Date().toISOString().split('T')[0], cotacao_usd: '', observacao: '' })
+const formLanc      = ref({ valor: '', data_lancamento: new Date().toISOString().substring(0, 10), cotacao_usd: '', observacao: '' })
 const salvandoLanc  = ref(false)
 const erroLanc      = ref('')
 const buscandoCotacao = ref(false)
@@ -142,7 +142,7 @@ async function salvarLancamento() {
       observacao:      formLanc.value.observacao || null,
     })
     ativoSelecionado.value = store.ativos.find((a) => a.id === ativoSelecionado.value!.id) ?? ativoSelecionado.value
-    formLanc.value = { valor: '', data_lancamento: new Date().toISOString().split('T')[0], cotacao_usd: formLanc.value.cotacao_usd, observacao: '' }
+    formLanc.value = { valor: '', data_lancamento: new Date().toISOString().substring(0, 10), cotacao_usd: formLanc.value.cotacao_usd, observacao: '' }
   } catch (e: unknown) {
     erroLanc.value = (e as { message?: string })?.message ?? 'Erro ao salvar lançamento.'
   } finally {

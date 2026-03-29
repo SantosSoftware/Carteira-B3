@@ -96,8 +96,9 @@ export const useProventosStore = defineStore('proventos', () => {
       if (!mapa[p.ticker]) {
         mapa[p.ticker] = { ticker: p.ticker, nome: p.nome_ativo ?? p.ticker, tipo_ativo: p.tipo_ativo, total: 0, ocorrencias: 0 }
       }
-      mapa[p.ticker].total += p.valor_total
-      mapa[p.ticker].ocorrencias++
+      const entry = mapa[p.ticker]!
+      entry.total += p.valor_total
+      entry.ocorrencias++
     }
     return Object.values(mapa).sort((a, b) => b.total - a.total).slice(0, 8)
   })

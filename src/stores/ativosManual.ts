@@ -41,8 +41,10 @@ export const CATEGORIAS: { value: Categoria; label: string; icone: string; cor: 
   { value: 'Outro',             label: 'Outros',              icone: 'pi pi-box',         cor: '#94A3B8' },
 ]
 
+const CATEGORIA_FALLBACK = { value: 'Outro' as Categoria, label: 'Outros', icone: 'pi pi-box', cor: '#94A3B8' }
+
 export function getCategoriaInfo(cat: Categoria) {
-  return CATEGORIAS.find((c) => c.value === cat) ?? CATEGORIAS[4]
+  return CATEGORIAS.find((c) => c.value === cat) ?? CATEGORIA_FALLBACK
 }
 
 export const useAtivosManualStore = defineStore('ativosManual', () => {
@@ -100,8 +102,12 @@ export const useAtivosManualStore = defineStore('ativosManual', () => {
             ? rawL.valor * rawL.cotacao_usd
             : rawL.valor,
         }
-        if (!lancMap[l.ativo_manual_id]) lancMap[l.ativo_manual_id] = []
-        lancMap[l.ativo_manual_id].push(l)
+        const bucket = lancMap[l.ativo_manual_id]
+        if (!bucket) {
+          lancMap[l.ativo_manual_id] = [l]
+        } else {
+          bucket.push(l)
+        }
       }
       lancamentos.value = lancMap
 

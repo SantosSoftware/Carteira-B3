@@ -12,7 +12,8 @@ const cotacaoStore = useCotacaoStore()
 
 const filtroTipo = ref('Todos')
 const busca = ref('')
-const colOrdem = ref<keyof AtivoCalculado>('valor_atual')
+type ColOrdenavel = keyof AtivoCalculado
+const colOrdem = ref<ColOrdenavel>('valor_atual')
 const ordemAsc = ref(false)
 const atualizando = ref(false)
 

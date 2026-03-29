@@ -48,7 +48,10 @@ function inferirTipoAtivo(ticker: string, nomeProduto: string): TipoAtivoProvent
 
 function parsearData(dataBr: string): string {
   // Formato esperado: "DD/MM/YYYY"
-  const [dia, mes, ano] = dataBr.split('/')
+  const partes = dataBr.split('/')
+  const dia = partes[0] ?? '01'
+  const mes = partes[1] ?? '01'
+  const ano = partes[2] ?? new Date().getFullYear().toString()
   return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`
 }
 
@@ -65,8 +68,10 @@ function extrairTicker(produto: string): { ticker: string; nome: string } {
 }
 
 export function parsearProventos(buffer: ArrayBuffer): ProventoParseado[] {
-  const wb   = XLSX.read(buffer, { type: 'array' })
-  const ws   = wb.Sheets['Movimentação'] ?? wb.Sheets[wb.SheetNames[0]]
+  const wb       = XLSX.read(buffer, { type: 'array' })
+  const wsKey    = wb.SheetNames[0] ?? ''
+  const ws       = wb.Sheets['Movimentação'] ?? wb.Sheets[wsKey]
+  if (!ws) return []
   const rows = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1, defval: '' })
 
   if (!rows.length) return []
@@ -82,8 +87,8 @@ export function parsearProventos(buffer: ArrayBuffer): ProventoParseado[] {
     // Somente créditos
     if (!entradaSaida || String(entradaSaida).toLowerCase() !== 'credito') continue
 
-    const movKey = String(movimentacao).toLowerCase().trim()
-    const tipoProvento = TIPOS_PROVENTO[movKey]
+  const movKey = String(movimentacao).toLowerCase().trim()
+  const tipoProvento: TipoProvento | undefined = TIPOS_PROVENTO[movKey]
 
     // Ignora tipos que não são proventos (ex: Resgate, Transferência)
     if (!tipoProvento) continue

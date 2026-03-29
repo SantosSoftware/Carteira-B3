@@ -123,7 +123,7 @@ async function confirmar() {
       await carteiraStore.salvarImportacao({
         nomeArquivo: `${store.nomeArquivo} — ${nomeAba}`,
         dataPosicao: store.dataPosicao,
-        ativos:      store.ativosPorAba[nomeAba],
+        ativos:      store.ativosPorAba[nomeAba] ?? [],
       })
     }
 
@@ -288,7 +288,7 @@ const resumoPorAba = computed(() =>
             <p>{{ progressoAba || 'Processando...' }}</p>
             <div class="progresso-abas">
               <span
-                v-for="aba in store.abasDisponiveis.filter(a => store.abasSelecionadas.has(a.nome))"
+                v-for="aba in store.abasDisponiveis.filter(a => store.abasSelecionadas.includes(a.nome))"
                 :key="aba.nome"
                 class="progresso-badge"
               >

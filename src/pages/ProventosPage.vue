@@ -5,6 +5,7 @@ import {
   Chart as ChartJS,
   CategoryScale, LinearScale, BarElement,
   Tooltip, Legend,
+  type TooltipItem,
 } from 'chart.js'
 import { useProventosStore }  from '@/stores/proventos'
 import { useCarteiraStore }   from '@/stores/carteira'
@@ -140,8 +141,8 @@ const chartOptions = {
     },
     tooltip: {
       callbacks: {
-        label: (ctx: { dataset: { label: string }; parsed: { y: number } }) =>
-          ` ${ctx.dataset.label}: ${formatarMoeda(ctx.parsed.y)}`,
+        label: (ctx: TooltipItem<'bar'>) =>
+          ` ${ctx.dataset.label ?? ''}: ${formatarMoeda(ctx.parsed.y)}`,
       },
     },
   },

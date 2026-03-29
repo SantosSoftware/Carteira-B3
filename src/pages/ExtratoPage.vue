@@ -58,11 +58,11 @@ async function excluir(id: string) {
             </td>
             <td class="align-right patrimonio-cell">
               {{ store.patrimoniosPorImportacao[imp.id] !== undefined
-                ? formatarMoeda(store.patrimoniosPorImportacao[imp.id])
+                ? formatarMoeda(store.patrimoniosPorImportacao[imp.id] ?? 0)
                 : '—' }}
             </td>
             <td class="align-right muted">
-              {{ formatarData(imp.created_at.split('T')[0]) }}
+              {{ formatarData(imp.created_at.substring(0, 10)) }}
             </td>
             <td class="acoes-cell">
               <!-- Confirmação inline de exclusão -->
