@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, watch } from 'vue'
 import { useCarteiraStore } from '@/stores/carteira'
 import { useAtivosManualStore, CATEGORIAS, getCategoriaInfo } from '@/stores/ativosManual'
 import MetricaCard from '@/components/carteira/MetricaCard.vue'
@@ -10,11 +10,16 @@ import { formatarMoeda, formatarPercentual, sinalPercentual, formatarData } from
 const store       = useCarteiraStore()
 const manualStore = useAtivosManualStore()
 
-onMounted(async () => {
-  if (store.carteira?.id && !manualStore.ativos.length) {
-    await manualStore.carregar(store.carteira.id)
-  }
-})
+// Reage quando a carteira for carregada (chega depois do mount na primeira visita)
+watch(
+  () => store.carteira?.id,
+  async (id) => {
+    if (id && !manualStore.ativos.length) {
+      await manualStore.carregar(id)
+    }
+  },
+  { immediate: true },
+)
 
 const mesReferencia = computed(() => {
   const data = store.importacaoMaisRecente?.data_posicao

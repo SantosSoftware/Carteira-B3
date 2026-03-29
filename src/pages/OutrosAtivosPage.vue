@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAtivosManualStore, CATEGORIAS, getCategoriaInfo, type AtivoManual, type Categoria, type LancamentoManual } from '@/stores/ativosManual'
 import { useCarteiraStore } from '@/stores/carteira'
 import { buscarCotacaoUSD } from '@/services/brapi'
@@ -8,9 +8,11 @@ import { formatarMoeda, formatarData } from '@/utils/formatters'
 const store         = useAtivosManualStore()
 const carteiraStore = useCarteiraStore()
 
-onMounted(async () => {
-  if (carteiraStore.carteira?.id) await store.carregar(carteiraStore.carteira.id)
-})
+watch(
+  () => carteiraStore.carteira?.id,
+  async (id) => { if (id) await store.carregar(id) },
+  { immediate: true },
+)
 
 // ── Filtro de categoria ────────────────────────────────────────────────────
 const filtroCategoria = ref<Categoria | 'Todos'>('Todos')

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Bar } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -17,9 +17,11 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 const store         = useProventosStore()
 const carteiraStore = useCarteiraStore()
 
-onMounted(async () => {
-  if (carteiraStore.carteira?.id) await store.carregar(carteiraStore.carteira.id)
-})
+watch(
+  () => carteiraStore.carteira?.id,
+  async (id) => { if (id) await store.carregar(id) },
+  { immediate: true },
+)
 
 // ── Filtros de tabela ──────────────────────────────────────────────────────
 const buscaTicker    = ref('')

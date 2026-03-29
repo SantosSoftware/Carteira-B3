@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCarteiraStore } from '@/stores/carteira'
 import AppSidebar from './AppSidebar.vue'
@@ -11,11 +11,16 @@ const carteiraStore = useCarteiraStore()
 
 const modalImportacaoAberto = ref(false)
 
-onMounted(async () => {
-  if (authStore.user) {
-    await carteiraStore.carregarCarteira(authStore.user.id)
-  }
-})
+// Reage ao usuário assim que ele estiver disponível (inclusive se já estiver no momento do mount)
+watch(
+  () => authStore.user,
+  async (user) => {
+    if (user && !carteiraStore.carteira && !carteiraStore.carregando) {
+      await carteiraStore.carregarCarteira(user.id)
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
