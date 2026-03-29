@@ -3,22 +3,42 @@ import { ref, computed, watch } from 'vue'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
 import { useCarteiraStore }  from '@/stores/carteira'
+import { useAuthStore }      from '@/stores/auth'
 import { useCotacaoStore }   from '@/stores/cotacao'
 import { useProventosStore } from '@/stores/proventos'
 import { isDerivativo }      from '@/utils/calculos'
-import { formatarMoeda, formatarPercentual, sinalPercentual, formatarData } from '@/utils/formatters'
+import { formatarMoeda, sinalPercentual, formatarData } from '@/utils/formatters'
 
 ChartJS.register(ArcElement, Tooltip)
 
-const carteiraStore = useCarteiraStore()
-const cotacaoStore  = useCotacaoStore()
+const carteiraStore  = useCarteiraStore()
+const authStore      = useAuthStore()
+const cotacaoStore   = useCotacaoStore()
 const proventosStore = useProventosStore()
+
+// Safety net: garante o carregamento da carteira mesmo que AppLayout
+// ainda não tenha terminado (timing em mobile / primeiro acesso)
+watch(
+  () => authStore.user,
+  async (user) => {
+    if (user && !carteiraStore.carteira && !carteiraStore.carregando) {
+      await carteiraStore.carregarCarteira(user.id)
+    }
+  },
+  { immediate: true },
+)
 
 // Carrega proventos quando a carteira estiver pronta
 watch(
   () => carteiraStore.carteira?.id,
   async (id) => { if (id && !proventosStore.proventos.length) await proventosStore.carregar(id) },
   { immediate: true },
+)
+
+// Indicador de inicialização — mostra spinner enquanto a carteira não estiver
+// carregada OU o carregamento estiver em andamento
+const inicializando = computed(
+  () => carteiraStore.carregando || (!carteiraStore.carteira && !authStore.user),
 )
 
 // ── Abas da bottom nav ─────────────────────────────────────────────────────
@@ -143,9 +163,12 @@ const PROVENTO_LABELS: Record<string, string> = {
       <!-- ══ ABA: RESUMO ══════════════════════════════════════════════════ -->
       <div v-show="abaAtiva === 'resumo'" class="aba-content">
 
-        <!-- Loading -->
-        <div v-if="carteiraStore.carregando" class="loading-center">
-          <i class="pi pi-spin pi-spinner" style="font-size:28px;color:#6C3FC5" />
+        <!-- Loading / inicializando -->
+        <div v-if="inicializando || carteiraStore.carregando" class="loading-center">
+          <div class="loading-card">
+            <i class="pi pi-spin pi-spinner" style="font-size:28px;color:#6C3FC5" />
+            <p class="loading-txt">Carregando carteira...</p>
+          </div>
         </div>
 
         <!-- Empty -->
@@ -512,7 +535,9 @@ const PROVENTO_LABELS: Record<string, string> = {
 .provento-tipo-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 99px; background: #e0f0ff; color: #2563eb; }
 
 /* ── Empty ──────────────────────────────────────────────────────────────── */
-.loading-center { display: flex; justify-content: center; align-items: center; min-height: 200px; }
+.loading-center { display: flex; justify-content: center; align-items: center; min-height: 300px; }
+.loading-card   { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; background: #fff; border-radius: 16px; padding: 2rem 2.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.loading-txt    { font-size: 13px; color: #8492A6; margin: 0; }
 .empty-mobile   { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; gap: 0.6rem; text-align: center; }
 .empty-icon     { width: 56px; height: 56px; border-radius: 16px; background: #ede9f8; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #6C3FC5; }
 .empty-txt      { font-size: 15px; font-weight: 600; color: #1A1A2E; margin: 0; }
