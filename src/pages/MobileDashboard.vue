@@ -9,6 +9,7 @@ import { useProventosStore }   from '@/stores/proventos'
 import { useAtivosManualStore } from '@/stores/ativosManual'
 import { isDerivativo, deveBuscarCotacaoBrapi } from '@/utils/calculos'
 import { useAtivosComCotacao } from '@/composables/useAtivosComCotacao'
+import { RouterLink } from 'vue-router'
 import { formatarMoeda, sinalPercentual, formatarData } from '@/utils/formatters'
 
 ChartJS.register(ArcElement, Tooltip)
@@ -163,9 +164,14 @@ const PROVENTO_LABELS: Record<string, string> = {
         <span class="header-logo">B3</span>
         <span class="header-carteira">{{ carteiraStore.carteira?.nome ?? 'Minha Carteira' }}</span>
       </div>
-      <button class="btn-refresh" :class="{ 'btn-refresh--spin': atualizando }" @click="atualizarCotacoes">
-        <i class="pi pi-refresh" />
-      </button>
+      <div class="header-actions">
+        <RouterLink to="/derivativos" class="btn-deriv-link" title="Negociação em opções">
+          <i class="pi pi-sliders-h" />
+        </RouterLink>
+        <button class="btn-refresh" :class="{ 'btn-refresh--spin': atualizando }" @click="atualizarCotacoes">
+          <i class="pi pi-refresh" />
+        </button>
+      </div>
     </header>
 
     <!-- ── Conteúdo scrollável ───────────────────────────────────────────── -->
@@ -426,6 +432,13 @@ const PROVENTO_LABELS: Record<string, string> = {
 .header-left    { display: flex; align-items: center; gap: 0.6rem; }
 .header-logo    { background: #6C3FC5; color: #fff; font-size: 12px; font-weight: 800; padding: 3px 7px; border-radius: 6px; letter-spacing: 0.05em; }
 .header-carteira{ font-size: 15px; font-weight: 600; color: #1A1A2E; }
+.header-actions { display: flex; align-items: center; gap: 0.45rem; }
+.btn-deriv-link {
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid #e5e7eb; border-radius: 9px; padding: 0.4rem 0.55rem;
+  font-size: 16px; color: #6C3FC5; text-decoration: none; transition: background 0.15s;
+}
+.btn-deriv-link:hover { background: #f3eeff; }
 .btn-refresh    { background: none; border: 1.5px solid #e5e7eb; border-radius: 9px; padding: 0.4rem 0.55rem; font-size: 16px; color: #6C3FC5; cursor: pointer; transition: all 0.15s; }
 .btn-refresh:hover { background: #f3eeff; }
 .btn-refresh--spin i { animation: spin 0.7s linear infinite; }

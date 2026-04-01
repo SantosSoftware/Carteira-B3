@@ -35,6 +35,11 @@ const router = createRouter({
           component: () => import('@/pages/AnalisesPage.vue'),
         },
         {
+          path: 'derivativos',
+          name: 'derivativos',
+          component: () => import('@/pages/DerivativosNegociacaoPage.vue'),
+        },
+        {
           path: 'extrato',
           name: 'extrato',
           component: () => import('@/pages/ExtratoPage.vue'),

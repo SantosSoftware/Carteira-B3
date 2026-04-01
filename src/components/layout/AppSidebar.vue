@@ -9,6 +9,7 @@ const navItems = [
   { label: 'Proventos', icon: 'pi pi-dollar',       to: '/proventos' },
   { label: 'Outros',   icon: 'pi pi-plus-circle',  to: '/outros-ativos' },
   { label: 'Análises', icon: 'pi pi-chart-line',   to: '/analises' },
+  { label: 'Derivativos', icon: 'pi pi-sliders-h', to: '/derivativos' },
   { label: 'Extrato',   icon: 'pi pi-file',        to: '/extrato' },
   { label: 'Importar',  icon: 'pi pi-upload',      to: '/importacoes' },
   { label: 'Config.',   icon: 'pi pi-cog',         to: '/configuracoes' },
