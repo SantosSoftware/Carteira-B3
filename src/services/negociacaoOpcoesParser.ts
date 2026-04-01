@@ -39,6 +39,12 @@ function mercadoEhOpcao(mercado: string): boolean {
   return normalizarChave(mercado).includes('opcao')
 }
 
+/** Exercício de opção de compra — liquidação do direito, não negociação do contrato na bolsa. */
+function mercadoEhExercicioOpcaoCompra(mercado: string): boolean {
+  const n = normalizarChave(mercado)
+  return n.includes('exercicio') && n.includes('compra')
+}
+
 function parsearDataBr(s: string): string | null {
   const t = String(s ?? '').trim()
   if (!t || t === '-') return null
@@ -173,6 +179,7 @@ export function parsearNegociacaoOpcoes(buffer: ArrayBuffer): ResultadoParseNego
   for (const row of rows) {
     const mercado = String(row[colMercado] ?? '')
     if (!mercadoEhOpcao(mercado)) continue
+    if (mercadoEhExercicioOpcaoCompra(mercado)) continue
 
     const codigo = String(row[colCodigo] ?? '').trim()
     if (!codigo) continue
