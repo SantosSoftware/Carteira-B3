@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useCarteiraStore } from '@/stores/carteira'
 import { useCotacaoStore } from '@/stores/cotacao'
+import { useAtivosComCotacao } from '@/composables/useAtivosComCotacao'
 import BadgeTipoAtivo from '@/components/ui/BadgeTipoAtivo.vue'
 import { formatarMoeda, formatarNumero, sinalPercentual } from '@/utils/formatters'
 import { isDerivativo, deveBuscarCotacaoBrapi } from '@/utils/calculos'
@@ -9,6 +10,7 @@ import type { AtivoCalculado } from '@/utils/calculos'
 
 const store = useCarteiraStore()
 const cotacaoStore = useCotacaoStore()
+const { ativosComCotacao } = useAtivosComCotacao()
 
 const filtroTipo = ref('Todos')
 const busca = ref('')
@@ -23,7 +25,7 @@ const TIPOS = computed(() => {
 })
 
 const ativosFiltrados = computed(() => {
-  let lista = store.ativos
+  let lista = ativosComCotacao.value
 
   if (filtroTipo.value !== 'Todos') {
     lista = lista.filter((a) => a.tipo_ativo === filtroTipo.value)
@@ -97,7 +99,7 @@ async function atualizarCotacoes() {
     <div class="page-header">
       <div>
         <h1 class="page-title">Ativos</h1>
-        <p class="page-sub">{{ store.ativos.length }} ativos na posição mais recente</p>
+        <p class="page-sub">{{ ativosComCotacao.length }} ativos na posição mais recente</p>
       </div>
       <button class="btn-atualizar" :disabled="atualizando" @click="atualizarCotacoes">
         <i :class="atualizando ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'" />
@@ -139,7 +141,7 @@ async function atualizarCotacoes() {
     </div>
 
     <!-- Tabela -->
-    <div v-if="store.ativos.length" class="card">
+    <div v-if="ativosComCotacao.length" class="card">
       <div class="table-wrap">
         <table class="ativos-table">
           <thead>

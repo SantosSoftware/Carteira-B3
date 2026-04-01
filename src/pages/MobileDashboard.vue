@@ -8,6 +8,7 @@ import { useCotacaoStore }     from '@/stores/cotacao'
 import { useProventosStore }   from '@/stores/proventos'
 import { useAtivosManualStore } from '@/stores/ativosManual'
 import { isDerivativo, deveBuscarCotacaoBrapi } from '@/utils/calculos'
+import { useAtivosComCotacao } from '@/composables/useAtivosComCotacao'
 import { formatarMoeda, sinalPercentual, formatarData } from '@/utils/formatters'
 
 ChartJS.register(ArcElement, Tooltip)
@@ -17,6 +18,12 @@ const authStore      = useAuthStore()
 const cotacaoStore   = useCotacaoStore()
 const proventosStore = useProventosStore()
 const manualStore    = useAtivosManualStore()
+const {
+  ativosComCotacao,
+  patrimonioB3ComCotacao,
+  rentabilidadeGlobalComCotacao,
+  alocacaoPorTipoComCotacao,
+} = useAtivosComCotacao()
 
 // Safety net: garante o carregamento da carteira mesmo que AppLayout
 // ainda não tenha terminado (timing em mobile / primeiro acesso)
@@ -61,14 +68,14 @@ async function atualizarCotacoes() {
   atualizando.value = false
 }
 
-// ── Métricas consolidadas (B3 + outros ativos manuais) ────────────────────
-const patrimonioTotal = computed(() => carteiraStore.patrimonioTotal + manualStore.totalGeral)
-const rentabilidade   = computed(() => carteiraStore.rentabilidadeGlobal)
+// ── Métricas consolidadas (B3 com cotações + outros ativos manuais) ─────────
+const patrimonioTotal = computed(() => patrimonioB3ComCotacao.value + manualStore.totalGeral)
+const rentabilidade   = computed(() => rentabilidadeGlobalComCotacao.value)
 const resultado       = computed(() => patrimonioTotal.value - carteiraStore.valorInvestido)
 
 // Variação média ponderada do dia (via cotação cache)
 const variacaoDia = computed(() => {
-  const ativos = carteiraStore.ativos.filter((a) => !isDerivativo(a.tipo_ativo))
+  const ativos = ativosComCotacao.value.filter((a) => !isDerivativo(a.tipo_ativo))
   const total  = ativos.reduce((s, a) => s + a.valor_atual, 0)
   if (!total) return 0
   let soma = 0
@@ -87,12 +94,12 @@ const COR_TIPO: Record<string, string> = {
 const COR_FALLBACK = '#94A3B8'
 
 const donutData = computed(() => ({
-  labels: carteiraStore.alocacaoPorTipo.map((a) =>
+  labels: alocacaoPorTipoComCotacao.value.map((a) =>
     a.tipo === 'Acao' ? 'Ações' : a.tipo === 'RendaFixa' ? 'Renda Fixa' : a.tipo,
   ),
   datasets: [{
-    data: carteiraStore.alocacaoPorTipo.map((a) => parseFloat(a.percentual.toFixed(1))),
-    backgroundColor: carteiraStore.alocacaoPorTipo.map((a) => COR_TIPO[a.tipo] ?? COR_FALLBACK),
+    data: alocacaoPorTipoComCotacao.value.map((a) => parseFloat(a.percentual.toFixed(1))),
+    backgroundColor: alocacaoPorTipoComCotacao.value.map((a) => COR_TIPO[a.tipo] ?? COR_FALLBACK),
     borderWidth: 2,
     borderColor: '#fff',
   }],
@@ -116,7 +123,7 @@ const donutOptions = {
 // ── Lista de ativos ────────────────────────────────────────────────────────
 const busca = ref('')
 const ativosFiltrados = computed(() => {
-  const lista = carteiraStore.ativos.filter((a) => !isDerivativo(a.tipo_ativo))
+  const lista = ativosComCotacao.value.filter((a) => !isDerivativo(a.tipo_ativo))
   if (!busca.value.trim()) return lista
   const q = busca.value.toUpperCase()
   return lista.filter((a) => a.ticker.includes(q) || a.nome_ativo.toUpperCase().includes(q))
@@ -223,7 +230,7 @@ const PROVENTO_LABELS: Record<string, string> = {
           </div>
 
           <!-- Card Donut -->
-          <div class="card card--donut" v-if="carteiraStore.alocacaoPorTipo.length">
+          <div class="card card--donut" v-if="alocacaoPorTipoComCotacao.length">
             <p class="card-label" style="margin-bottom:0.75rem">Alocação por Tipo</p>
             <div class="donut-wrap">
               <div class="donut-chart">
@@ -231,7 +238,7 @@ const PROVENTO_LABELS: Record<string, string> = {
               </div>
               <div class="donut-legenda">
                 <div
-                  v-for="item in carteiraStore.alocacaoPorTipo"
+                  v-for="item in alocacaoPorTipoComCotacao"
                   :key="item.tipo"
                   class="legenda-item"
                 >
@@ -247,7 +254,7 @@ const PROVENTO_LABELS: Record<string, string> = {
           <div class="card card--top">
             <p class="card-label" style="margin-bottom:0.75rem">Maiores Posições</p>
             <div
-              v-for="ativo in [...carteiraStore.ativos].filter(a => !isDerivativo(a.tipo_ativo)).sort((a,b) => b.valor_atual - a.valor_atual).slice(0, 5)"
+              v-for="ativo in [...ativosComCotacao].filter(a => !isDerivativo(a.tipo_ativo)).sort((a,b) => b.valor_atual - a.valor_atual).slice(0, 5)"
               :key="ativo.ticker"
               class="top-ativo-row"
             >

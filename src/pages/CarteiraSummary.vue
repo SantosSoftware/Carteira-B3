@@ -6,9 +6,16 @@ import MetricaCard from '@/components/carteira/MetricaCard.vue'
 import GraficoDonut from '@/components/carteira/GraficoDonut.vue'
 import GraficoHistorico from '@/components/carteira/GraficoHistorico.vue'
 import { formatarMoeda, formatarPercentual, sinalPercentual, formatarData } from '@/utils/formatters'
+import { useAtivosComCotacao } from '@/composables/useAtivosComCotacao'
 
 const store       = useCarteiraStore()
 const manualStore = useAtivosManualStore()
+const {
+  ativosComCotacao,
+  patrimonioB3ComCotacao,
+  rentabilidadeGlobalComCotacao,
+  alocacaoPorTipoComCotacao,
+} = useAtivosComCotacao()
 
 // Reage quando a carteira for carregada (chega depois do mount na primeira visita)
 watch(
@@ -28,8 +35,10 @@ const mesReferencia = computed(() => {
   return `${mes}/${ano}`
 })
 
-// Patrimônio consolidado = B3 + outros ativos manuais
-const patrimonioConsolidado = computed(() => store.patrimonioTotal + manualStore.totalGeral)
+// Patrimônio consolidado = B3 (com cotações ao vivo) + outros ativos manuais
+const patrimonioConsolidado = computed(
+  () => patrimonioB3ComCotacao.value + manualStore.totalGeral,
+)
 const resultadoConsolidado  = computed(() => patrimonioConsolidado.value - store.valorInvestido)
 </script>
 
@@ -81,10 +90,10 @@ const resultadoConsolidado  = computed(() => patrimonioConsolidado.value - store
         />
         <MetricaCard
           titulo="Rentabilidade"
-          :valor="sinalPercentual(store.rentabilidadeGlobal)"
+          :valor="sinalPercentual(rentabilidadeGlobalComCotacao)"
           icone="pi pi-chart-line"
-          :cor-icone="store.rentabilidadeGlobal >= 0 ? '#00C9A7' : '#E74C3C'"
-          :variacao="store.rentabilidadeGlobal"
+          :cor-icone="rentabilidadeGlobalComCotacao >= 0 ? '#00C9A7' : '#E74C3C'"
+          :variacao="rentabilidadeGlobalComCotacao"
           subtitulo="sobre o custo B3"
         />
         <MetricaCard
@@ -99,8 +108,8 @@ const resultadoConsolidado  = computed(() => patrimonioConsolidado.value - store
       <!-- Gráficos -->
       <div class="graficos-grid">
         <GraficoDonut
-          :alocacao="store.alocacaoPorTipo"
-          :patrimonio-total="store.patrimonioTotal"
+          :alocacao="alocacaoPorTipoComCotacao"
+          :patrimonio-total="patrimonioB3ComCotacao"
           :mes-referencia="mesReferencia"
         />
         <GraficoHistorico :historico="store.historicoPatrimonio" />
@@ -143,7 +152,7 @@ const resultadoConsolidado  = computed(() => patrimonioConsolidado.value - store
           </thead>
           <tbody>
             <tr
-              v-for="ativo in [...store.ativos]
+              v-for="ativo in [...ativosComCotacao]
                 .sort((a, b) => b.valor_atual - a.valor_atual)
                 .slice(0, 5)"
               :key="ativo.ticker"

@@ -7,10 +7,16 @@ import {
 } from 'chart.js'
 import { useCarteiraStore } from '@/stores/carteira'
 import { formatarMoeda, formatarPercentual } from '@/utils/formatters'
+import { useAtivosComCotacao } from '@/composables/useAtivosComCotacao'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
 const store = useCarteiraStore()
+const {
+  ativosComCotacao,
+  patrimonioB3ComCotacao,
+  alocacaoPorTipoComCotacao,
+} = useAtivosComCotacao()
 
 const COR_TIPO: Record<string, string> = {
   Acao: '#6C3FC5', FII: '#F4A623', BDR: '#3B82F6',
@@ -19,12 +25,12 @@ const COR_TIPO: Record<string, string> = {
 
 // Pizza — alocação por tipo
 const pieData = computed(() => ({
-  labels: store.alocacaoPorTipo.map((a) =>
+  labels: alocacaoPorTipoComCotacao.value.map((a) =>
     a.tipo === 'Acao' ? 'Ações' : a.tipo === 'RendaFixa' ? 'Renda Fixa' : a.tipo,
   ),
   datasets: [{
-    data: store.alocacaoPorTipo.map((a) => a.percentual),
-    backgroundColor: store.alocacaoPorTipo.map((a) => COR_TIPO[a.tipo] ?? COR_TIPO.Outro),
+    data: alocacaoPorTipoComCotacao.value.map((a) => a.percentual),
+    backgroundColor: alocacaoPorTipoComCotacao.value.map((a) => COR_TIPO[a.tipo] ?? COR_TIPO.Outro),
     borderWidth: 2,
     borderColor: '#fff',
   }],
@@ -40,7 +46,7 @@ const pieOptions = {
 
 // Barras horizontais — top 10 por valor atual
 const top10 = computed(() =>
-  [...store.ativos].sort((a, b) => b.valor_atual - a.valor_atual).slice(0, 10),
+  [...ativosComCotacao.value].sort((a, b) => b.valor_atual - a.valor_atual).slice(0, 10),
 )
 
 const barData = computed(() => ({
@@ -69,7 +75,7 @@ const barOptions = {
 // Rentabilidade por tipo
 const rentabPorTipo = computed(() => {
   const mapa: Record<string, { somaInv: number; somaAtual: number }> = {}
-  for (const a of store.ativos) {
+  for (const a of ativosComCotacao.value) {
     if (!mapa[a.tipo_ativo]) mapa[a.tipo_ativo] = { somaInv: 0, somaAtual: 0 }
     const entry = mapa[a.tipo_ativo]!
     entry.somaInv += a.valor_investido
@@ -167,7 +173,7 @@ const rentabBarOptions = {
                   {{ item.tipo === 'Acao' ? 'Ações' : item.tipo === 'RendaFixa' ? 'Renda Fixa' : item.tipo }}
                 </td>
                 <td class="align-right muted">
-                  {{ formatarMoeda(store.ativos.filter(a => a.tipo_ativo === item.tipo).reduce((s, a) => s + a.valor_investido, 0)) }}
+                  {{ formatarMoeda(ativosComCotacao.filter(a => a.tipo_ativo === item.tipo).reduce((s, a) => s + a.valor_investido, 0)) }}
                 </td>
                 <td class="align-right">{{ formatarMoeda(item.valorAtual) }}</td>
                 <td
@@ -177,7 +183,7 @@ const rentabBarOptions = {
                   {{ item.rentabilidade >= 0 ? '+' : '' }}{{ item.rentabilidade.toFixed(2).replace('.', ',') }}%
                 </td>
                 <td class="align-right muted">
-                  {{ formatarPercentual(store.patrimonioTotal > 0 ? (item.valorAtual / store.patrimonioTotal) * 100 : 0) }}
+                  {{ formatarPercentual(patrimonioB3ComCotacao > 0 ? (item.valorAtual / patrimonioB3ComCotacao) * 100 : 0) }}
                 </td>
               </tr>
             </tbody>
