@@ -13,6 +13,25 @@ export function isDerivativo(tipo_ativo: string): boolean {
   return (TIPOS_EXCLUIDOS_PATRIMONIO as readonly string[]).includes(tipo_ativo)
 }
 
+/**
+ * BrAPI cobre ações (PETR4), FII/ETF (XXXX11), BDR (*34/*35). Opções B3 usam
+ * códigos longos (ex.: PETRE308) e retornam 404 — não devem ser consultados.
+ */
+export function tickerFormatoComCotacaoBrapi(ticker: string): boolean {
+  const t = ticker.trim().toUpperCase()
+  if (t.length < 7) return true
+  if (/^[A-Z]{4}\d$/.test(t)) return true
+  if (/^[A-Z]{4,6}11(B)?$/.test(t)) return true
+  if (/^[A-Z]{4}(3[24]|35)$/.test(t)) return true
+  return false
+}
+
+export function deveBuscarCotacaoBrapi(ativo: { tipo_ativo: string; ticker: string }): boolean {
+  if (ativo.tipo_ativo === 'RendaFixa' || ativo.tipo_ativo === 'FundoInvestimento') return false
+  if (isDerivativo(ativo.tipo_ativo)) return false
+  return tickerFormatoComCotacaoBrapi(ativo.ticker)
+}
+
 export function calcularAtivo(ativo: AtivoImportado & { preco_atual?: number }): AtivoCalculado {
   const preco_atual     = ativo.preco_atual ?? ativo.valor_atual / (ativo.quantidade || 1)
   const valor_investido = ativo.quantidade * ativo.preco_medio

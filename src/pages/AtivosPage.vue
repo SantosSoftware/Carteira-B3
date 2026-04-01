@@ -4,7 +4,7 @@ import { useCarteiraStore } from '@/stores/carteira'
 import { useCotacaoStore } from '@/stores/cotacao'
 import BadgeTipoAtivo from '@/components/ui/BadgeTipoAtivo.vue'
 import { formatarMoeda, formatarNumero, sinalPercentual } from '@/utils/formatters'
-import { isDerivativo } from '@/utils/calculos'
+import { isDerivativo, deveBuscarCotacaoBrapi } from '@/utils/calculos'
 import type { AtivoCalculado } from '@/utils/calculos'
 
 const store = useCarteiraStore()
@@ -83,9 +83,7 @@ function iconeOrdem(col: keyof AtivoCalculado) {
 
 async function atualizarCotacoes() {
   atualizando.value = true
-  const tickers = store.ativos
-    .filter((a) => a.tipo_ativo !== 'RendaFixa')
-    .map((a) => a.ticker)
+  const tickers = store.ativos.filter(deveBuscarCotacaoBrapi).map((a) => a.ticker)
 
   // Limpa cache para forçar rebusca
   for (const t of tickers) delete cotacaoStore.cache[t]

@@ -7,7 +7,7 @@ import { useAuthStore }        from '@/stores/auth'
 import { useCotacaoStore }     from '@/stores/cotacao'
 import { useProventosStore }   from '@/stores/proventos'
 import { useAtivosManualStore } from '@/stores/ativosManual'
-import { isDerivativo }        from '@/utils/calculos'
+import { isDerivativo, deveBuscarCotacaoBrapi } from '@/utils/calculos'
 import { formatarMoeda, sinalPercentual, formatarData } from '@/utils/formatters'
 
 ChartJS.register(ArcElement, Tooltip)
@@ -54,9 +54,7 @@ const abaAtiva = ref<Aba>('resumo')
 // ── Atualizar cotações ─────────────────────────────────────────────────────
 const atualizando = ref(false)
 async function atualizarCotacoes() {
-  const tickers = carteiraStore.ativos
-    .filter((a) => /^[A-Z]{3,6}\d{1,2}$/.test(a.ticker))
-    .map((a) => a.ticker)
+  const tickers = carteiraStore.ativos.filter(deveBuscarCotacaoBrapi).map((a) => a.ticker)
   if (!tickers.length) return
   atualizando.value = true
   await cotacaoStore.buscar(tickers)

@@ -5,7 +5,7 @@ import { listarAbas, parsearPlanilhaB3 } from '@/services/b3Parser'
 import { useImportacaoStore, type AtivoPreview } from '@/stores/importacao'
 import { useCarteiraStore } from '@/stores/carteira'
 import { useCotacaoStore } from '@/stores/cotacao'
-import { calcularAtivo } from '@/utils/calculos'
+import { calcularAtivo, deveBuscarCotacaoBrapi } from '@/utils/calculos'
 import { formatarData } from '@/utils/formatters'
 import DropzoneUpload from './DropzoneUpload.vue'
 import PreviewImportacao from './PreviewImportacao.vue'
@@ -74,9 +74,7 @@ async function processarSelecionadas() {
         _aba: aba.nome,
       }))
 
-      const tickersDaAba = ativos
-        .filter((a) => !['RendaFixa', 'FundoInvestimento', 'Opcao'].includes(a.tipo_ativo))
-        .map((a) => a.ticker)
+      const tickersDaAba = ativos.filter(deveBuscarCotacaoBrapi).map((a) => a.ticker)
 
       todosOsTickers = [...new Set([...todosOsTickers, ...tickersDaAba])]
     }
