@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCarteiraStore } from '@/stores/carteira'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const emit = defineEmits<{
   importar: []
@@ -11,6 +11,10 @@ const emit = defineEmits<{
 const authStore = useAuthStore()
 const carteiraStore = useCarteiraStore()
 const router = useRouter()
+const route = useRoute()
+
+/** Evita confundir com a importação exclusiva da página Derivativos. */
+const mostrarImportarCustodia = computed(() => route.name !== 'derivativos')
 
 const menuAberto = ref(false)
 
@@ -29,7 +33,11 @@ async function sair() {
 
     <!-- Ações -->
     <div class="topbar-actions">
-      <button class="btn-importar" @click="emit('importar')">
+      <button
+        v-if="mostrarImportarCustodia"
+        class="btn-importar"
+        @click="emit('importar')"
+      >
         <i class="pi pi-upload" />
         <span>Importar Planilha</span>
       </button>

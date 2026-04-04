@@ -40,7 +40,8 @@ async function excluir(id: string) {
         <p class="instrucao-desc">
           Acesse o portal da B3 → <strong>Extrato de Custódia</strong> → escolha a data de referência →
           clique em <strong>Exportar</strong> e salve o arquivo <em>.xlsx</em>. Em seguida, clique em
-          "Importar Planilha" acima.
+          "Importar Planilha" acima. Várias importações são <strong>unidas</strong>: para cada ativo, vale a
+          linha da importação mais recente; o que só existia em importações antigas continua aparecendo.
         </p>
       </div>
     </div>

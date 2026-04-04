@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
+import { RouterLink } from 'vue-router'
 import { useCarteiraStore } from '@/stores/carteira'
 import { useNegociacoesOpcaoStore } from '@/stores/negociacoesOpcao'
 import { formatarMoeda, formatarData, formatarNumero } from '@/utils/formatters'
@@ -216,8 +217,20 @@ function abrirSeletor() {
       <div>
         <h1 class="page-title">Negociação em opções</h1>
         <p class="page-sub">
-          Importe o arquivo <strong>Negociação</strong> da B3. Apenas linhas de <strong>opções</strong> são
-          consideradas (coluna Mercado). Não altera a carteira principal.
+          Use apenas o export <strong>Negociação</strong> (aba homônima). Não é o extrato de custódia.
+        </p>
+      </div>
+    </div>
+
+    <div class="card card--isolamento" role="note">
+      <i class="pi pi-shield" aria-hidden="true" />
+      <div>
+        <p class="isolamento-titulo">Esta tela não altera sua posição em Ativos</p>
+        <p class="isolamento-texto">
+          A importação grava somente na tabela <strong>negociações em opções</strong> (análise de compra/venda).
+          O app <strong>não</strong> grava em <code>importacoes</code> nem em <code>posicoes</code> a partir daqui.
+          Se a carteira mudou, a causa foi outra (por exemplo importação pelo menu
+          <RouterLink to="/importacoes">Importações</RouterLink> ou barra superior, ou cotações ao vivo na tela de Ativos).
         </p>
       </div>
     </div>
@@ -386,6 +399,39 @@ function abrirSeletor() {
   margin: 0;
   max-width: 52ch;
   line-height: 1.45;
+}
+
+.card--isolamento {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+}
+.card--isolamento .pi-shield {
+  font-size: 1.35rem;
+  color: var(--color-primary);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.isolamento-titulo {
+  margin: 0 0 0.4rem;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.isolamento-texto {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+.isolamento-texto code {
+  font-size: 12px;
+}
+.isolamento-texto :deep(a) {
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 .dropzone {

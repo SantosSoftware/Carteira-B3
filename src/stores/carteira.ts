@@ -95,14 +95,11 @@ export const useCarteiraStore = defineStore('carteira', () => {
     importacoes.value = data ?? []
 
     if (importacoes.value.length) {
-      // Carrega posições de TODAS as importações com a data mais recente
-      const dataRecente = importacoes.value[0]?.data_posicao ?? ''
-      const idsRecentes = importacoes.value
-        .filter((i) => i.data_posicao === dataRecente)
-        .map((i) => i.id)
-
-      await carregarPosicoesMultiplas(idsRecentes)
-      await carregarPatrimoniosPorImportacao(importacoes.value.map((i) => i.id))
+      // Mescla posições de todas as importações: import mais recente (created_at)
+      // vence em caso de mesmo ticker+tipo; importações parciais continuam somando ativos.
+      const ids = importacoes.value.map((i) => i.id)
+      await carregarPosicoesMultiplas(ids)
+      await carregarPatrimoniosPorImportacao(ids)
     }
   }
 
@@ -124,14 +121,21 @@ export const useCarteiraStore = defineStore('carteira', () => {
       .from('posicoes')
       .select('*')
       .in('importacao_id', ids)
-      .order('created_at', { ascending: false }) // mais recente primeiro
 
-    // Deduplicar: se o mesmo ticker aparecer em múltiplas importações
-    // do mesmo dia (re-importações), mantém apenas o registro mais recente
+    const mapaImport = new Map(importacoes.value.map((i) => [i.id, i]))
+
+    // Ordenar: importação mais recente (created_at) primeiro; depois posição mais recente.
+    const ordenadas = [...(data ?? [])].sort((a, b) => {
+      const ca = mapaImport.get(a.importacao_id)?.created_at ?? ''
+      const cb = mapaImport.get(b.importacao_id)?.created_at ?? ''
+      const cmp = cb.localeCompare(ca)
+      if (cmp !== 0) return cmp
+      return (b.created_at ?? '').localeCompare(a.created_at ?? '')
+    })
+
+    // Deduplicar por ticker+tipo: mantém a primeira ocorrência (= import mais recente com aquele ativo)
     const vistos = new Set<string>()
-    const posicoesSemDuplicata = (data ?? []).filter((p) => {
-      // A chave de deduplicação é ticker + tipo_ativo (mesmo ticker pode
-      // ser Acao ou Opcao, por exemplo PETR4 e opção sobre PETR4)
+    const posicoesSemDuplicata = ordenadas.filter((p) => {
       const chave = `${p.ticker}__${p.tipo_ativo}`
       if (vistos.has(chave)) return false
       vistos.add(chave)
