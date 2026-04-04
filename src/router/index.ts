@@ -46,8 +46,7 @@ const router = createRouter({
         },
         {
           path: 'importacoes',
-          name: 'importacoes',
-          component: () => import('@/pages/ImportacoesPage.vue'),
+          redirect: { name: 'extrato' },
         },
         {
           path: 'proventos',

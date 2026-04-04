@@ -19,14 +19,12 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 const carteiraStore = useCarteiraStore()
 const negStore = useNegociacoesOpcaoStore()
 
-const arquivoInput = ref<HTMLInputElement | null>(null)
-const importando = ref(false)
 const tabelaExpandida = ref(false)
-const arrastando = ref(false)
 
 watch(
   () => carteiraStore.carteira?.id,
-  async (id) => {
+  async (id, prevId) => {
+    if (id && prevId !== undefined && id !== prevId) negStore.limparEstado()
     if (id) await negStore.carregar(id)
     else negStore.limparEstado()
   },
@@ -169,46 +167,6 @@ const totalCompra = computed(() =>
 const totalVenda = computed(() =>
   negStore.linhas.filter((l) => l.tipo_movimentacao === 'Venda').reduce((s, l) => s + l.valor, 0),
 )
-
-async function processarArquivo(file: File | null) {
-  if (!file || !carteiraStore.carteira?.id) return
-  if (!file.name.toLowerCase().endsWith('.xlsx')) {
-    alert('Envie um arquivo .xlsx exportado pela B3.')
-    return
-  }
-  if (negStore.linhas.length) {
-    const ok = window.confirm(
-      'Já existem negociações importadas. Deseja substituir todos os dados pelo novo arquivo?',
-    )
-    if (!ok) return
-  }
-  importando.value = true
-  negStore.erro = null
-  try {
-    await negStore.importarSubstituindo(file, carteiraStore.carteira.id)
-  } catch {
-    /* erro já em negStore.erro */
-  } finally {
-    importando.value = false
-    if (arquivoInput.value) arquivoInput.value.value = ''
-  }
-}
-
-function onFileChange(e: Event) {
-  const input = e.target as HTMLInputElement
-  const file = input.files?.[0] ?? null
-  void processarArquivo(file)
-}
-
-function onDrop(e: DragEvent) {
-  arrastando.value = false
-  const file = e.dataTransfer?.files?.[0]
-  void processarArquivo(file ?? null)
-}
-
-function abrirSeletor() {
-  arquivoInput.value?.click()
-}
 </script>
 
 <template>
@@ -217,55 +175,28 @@ function abrirSeletor() {
       <div>
         <h1 class="page-title">Negociação em opções</h1>
         <p class="page-sub">
-          Use apenas o export <strong>Negociação</strong> (aba homônima). Não é o extrato de custódia.
+          Dados da aba <strong>Negociação</strong> (mercado Opção) no mesmo <em>.xlsx</em> que você importa em
+          <RouterLink class="inline-link" to="/extrato">Extrato</RouterLink>. Não há upload nesta tela.
         </p>
       </div>
     </div>
 
-    <div class="card card--isolamento" role="note">
-      <i class="pi pi-shield" aria-hidden="true" />
+    <div class="card card--origem" role="note">
+      <i class="pi pi-info-circle" aria-hidden="true" />
       <div>
-        <p class="isolamento-titulo">Esta tela não altera sua posição em Ativos</p>
-        <p class="isolamento-texto">
-          A importação grava somente na tabela <strong>negociações em opções</strong> (análise de compra/venda).
-          O app <strong>não</strong> grava em <code>importacoes</code> nem em <code>posicoes</code> a partir daqui.
-          Se a carteira mudou, a causa foi outra (por exemplo importação pelo menu
-          <RouterLink to="/importacoes">Importações</RouterLink>, ou cotações ao vivo na tela de Ativos).
+        <p class="origem-titulo">Somente leitura da carteira</p>
+        <p class="origem-texto">
+          Estes gráficos usam a tabela <code>negociacoes_opcao</code>, preenchida automaticamente ao salvar o extrato.
+          Posições em <strong>Ativos</strong> vêm das abas de custódia; alterações na carteira vêm de
+          <RouterLink class="inline-link" to="/extrato">novas importações no Extrato</RouterLink> ou de cotações na tela de Ativos.
         </p>
       </div>
-    </div>
-
-    <div
-      class="dropzone"
-      :class="{ 'dropzone--drag': arrastando }"
-      @dragover.prevent="arrastando = true"
-      @dragleave.prevent="arrastando = false"
-      @drop.prevent="onDrop"
-    >
-      <input
-        ref="arquivoInput"
-        type="file"
-        accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        class="sr-only"
-        @change="onFileChange"
-      />
-      <i class="pi pi-upload dropzone-icon" />
-      <p class="dropzone-text">
-        Arraste o .xlsx aqui ou
-        <button type="button" class="link-btn" :disabled="importando || !carteiraStore.carteira" @click="abrirSeletor">
-          escolha o arquivo
-        </button>
-      </p>
-      <p v-if="!carteiraStore.carteira" class="dropzone-warn">Carregue a carteira (faça login).</p>
-      <p v-if="importando || negStore.carregando" class="dropzone-loading">
-        <i class="pi pi-spin pi-spinner" /> Processando…
-      </p>
     </div>
 
     <div v-if="negStore.ultimaImportacao" class="card card--info">
       <i class="pi pi-check-circle" />
       <span>
-        Importado da aba <strong>{{ negStore.ultimaImportacao.nomeAba }}</strong> —
+        Última sincronização da aba <strong>{{ negStore.ultimaImportacao.nomeAba }}</strong> —
         {{ negStore.ultimaImportacao.opcoes }} linha(s) de opções de
         {{ negStore.ultimaImportacao.totalArquivo }} no arquivo.
       </span>
@@ -281,6 +212,10 @@ function abrirSeletor() {
         </p>
       </div>
     </div>
+
+    <p v-if="negStore.carregando" class="loading-line">
+      <i class="pi pi-spin pi-spinner" /> Carregando negociações…
+    </p>
 
     <template v-if="negStore.linhas.length">
       <div class="resumo-grid">
@@ -327,7 +262,7 @@ function abrirSeletor() {
           @click="tabelaExpandida = !tabelaExpandida"
         >
           <span>
-            Negócios importados ({{ negStore.linhas.length }})
+            Negócios ({{ negStore.linhas.length }})
             <span class="muted">— clique para {{ tabelaExpandida ? 'recolher' : 'expandir' }}</span>
           </span>
           <i :class="tabelaExpandida ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" />
@@ -369,7 +304,11 @@ function abrirSeletor() {
 
     <div v-else-if="!negStore.carregando && carteiraStore.carteira" class="empty-hint card">
       <i class="pi pi-info-circle" />
-      <p>Nenhuma negociação em opções importada ainda. Envie o arquivo de negociação da B3 acima.</p>
+      <p>
+        Nenhuma negociação em opções ainda. Importe o extrato completo em
+        <RouterLink class="inline-link" to="/extrato">Extrato</RouterLink>
+        (o arquivo deve incluir a aba Negociação com operações no mercado de opções).
+      </p>
     </div>
   </div>
 </template>
@@ -397,97 +336,51 @@ function abrirSeletor() {
   font-size: 13px;
   color: var(--color-text-muted);
   margin: 0;
-  max-width: 52ch;
+  max-width: 56ch;
   line-height: 1.45;
 }
+.inline-link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.inline-link:hover {
+  text-decoration: underline;
+}
 
-.card--isolamento {
+.card--origem {
   display: flex;
   gap: 0.85rem;
   align-items: flex-start;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
   background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
 }
-.card--isolamento .pi-shield {
-  font-size: 1.35rem;
+.card--origem .pi-info-circle {
+  font-size: 1.25rem;
   color: var(--color-primary);
   margin-top: 2px;
   flex-shrink: 0;
 }
-.isolamento-titulo {
+.origem-titulo {
   margin: 0 0 0.4rem;
   font-size: 14px;
   font-weight: 700;
   color: var(--color-text);
 }
-.isolamento-texto {
+.origem-texto {
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
   color: var(--color-text-muted);
 }
-.isolamento-texto code {
+.origem-texto code {
   font-size: 12px;
 }
-.isolamento-texto :deep(a) {
-  color: var(--color-primary);
-  font-weight: 600;
-}
 
-.dropzone {
-  border: 2px dashed var(--color-border);
-  border-radius: 16px;
-  padding: 2rem;
-  text-align: center;
-  background: var(--color-surface);
-  transition: border-color 0.15s, background 0.15s;
-}
-.dropzone--drag {
-  border-color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
-}
-.dropzone-icon {
-  font-size: 2rem;
-  color: var(--color-text-muted);
-  display: block;
-  margin-bottom: 0.75rem;
-}
-.dropzone-text {
-  font-size: 14px;
-  color: var(--color-text);
+.loading-line {
   margin: 0;
-}
-.dropzone-warn,
-.dropzone-loading {
-  font-size: 13px;
-  color: var(--color-danger);
-  margin: 0.75rem 0 0;
-}
-.dropzone-loading {
+  font-size: 14px;
   color: var(--color-primary);
-}
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
-}
-.link-btn {
-  background: none;
-  border: none;
-  color: var(--color-primary);
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
-}
-.link-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .card {

@@ -67,7 +67,7 @@ const resultadoConsolidado  = computed(() => patrimonioConsolidado.value - store
         </div>
         <h2 class="empty-title">Nenhuma posição importada</h2>
         <p class="empty-desc">
-          No menu lateral, abra <RouterLink class="empty-link" to="/importacoes">Importar</RouterLink> e envie o extrato de custódia da B3 (<em>.xlsx</em>).
+          No menu lateral, abra <RouterLink class="empty-link" to="/extrato">Extrato</RouterLink> e envie o extrato completo da B3 (<em>.xlsx</em>).
         </p>
       </div>
     </template>

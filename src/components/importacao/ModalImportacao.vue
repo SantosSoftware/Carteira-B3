@@ -5,6 +5,7 @@ import { listarAbas, parsearPlanilhaB3 } from '@/services/b3Parser'
 import { useImportacaoStore, type AtivoPreview } from '@/stores/importacao'
 import { useCarteiraStore } from '@/stores/carteira'
 import { useCotacaoStore } from '@/stores/cotacao'
+import { useNegociacoesOpcaoStore } from '@/stores/negociacoesOpcao'
 import { calcularAtivo, deveBuscarCotacaoBrapi } from '@/utils/calculos'
 import { formatarData } from '@/utils/formatters'
 import DropzoneUpload from './DropzoneUpload.vue'
@@ -16,6 +17,7 @@ const router        = useRouter()
 const store         = useImportacaoStore()
 const carteiraStore = useCarteiraStore()
 const cotacaoStore  = useCotacaoStore()
+const negociacoesOpcaoStore = useNegociacoesOpcaoStore()
 
 store.reset()
 
@@ -125,8 +127,21 @@ async function confirmar() {
       })
     }
 
+    if (store.bufferArquivo && carteiraStore.carteira?.id) {
+      progressoSalvar.value = 'Sincronizando negociações em opções…'
+      try {
+        await negociacoesOpcaoStore.sincronizarDoBuffer(
+          carteiraStore.carteira.id,
+          store.bufferArquivo,
+          store.nomeArquivo,
+        )
+      } catch {
+        /* erro já em negociacoesOpcaoStore.erro — custódia já foi salva */
+      }
+    }
+
     store.status = 'sucesso'
-    setTimeout(() => { emit('fechar'); router.push('/carteira') }, 1200)
+    setTimeout(() => { emit('fechar'); router.push('/extrato') }, 1200)
   } catch (e: unknown) {
     store.setErro(e instanceof Error ? e.message : 'Erro ao salvar importação.')
   } finally {

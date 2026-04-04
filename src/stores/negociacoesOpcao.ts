@@ -52,11 +52,15 @@ export const useNegociacoesOpcaoStore = defineStore('negociacoesOpcao', () => {
     }
   }
 
-  async function importarSubstituindo(
-    arquivo: File,
+  /**
+   * Lê a aba Negociação (opções) do mesmo .xlsx do extrato e substitui os dados em `negociacoes_opcao`.
+   * Chamado após salvar importações de custódia no modal de extrato.
+   */
+  async function sincronizarDoBuffer(
     carteiraId: string,
+    buffer: ArrayBuffer,
+    nomeArquivo: string,
   ): Promise<{ totalArquivo: number; opcoes: number; nomeAba: string }> {
-    const buffer = await arquivo.arrayBuffer()
     const { linhasOpcoes, totalLinhasArquivo, nomeAba } = parsearNegociacaoOpcoes(buffer)
 
     carregando.value = true
@@ -83,20 +87,20 @@ export const useNegociacoesOpcaoStore = defineStore('negociacoesOpcao', () => {
           valor: l.valor,
           prazo_vencimento: l.prazo_vencimento,
           instituicao: l.instituicao,
-          nome_arquivo: arquivo.name,
+          nome_arquivo: nomeArquivo,
         }))
 
         const { error: insErr } = await supabase.from('negociacoes_opcao').insert(payload)
         if (insErr) throw insErr
       }
 
+      await carregar(carteiraId)
+
       ultimaImportacao.value = {
         totalArquivo: totalLinhasArquivo,
         opcoes: linhasOpcoes.length,
         nomeAba,
       }
-
-      await carregar(carteiraId)
 
       return {
         totalArquivo: totalLinhasArquivo,
@@ -105,12 +109,20 @@ export const useNegociacoesOpcaoStore = defineStore('negociacoesOpcao', () => {
       }
     } catch (e: unknown) {
       const msg =
-        e instanceof Error ? e.message : 'Erro ao importar arquivo de negociação.'
+        e instanceof Error ? e.message : 'Erro ao sincronizar negociações em opções.'
       erro.value = msg
       throw e
     } finally {
       carregando.value = false
     }
+  }
+
+  async function importarSubstituindo(
+    arquivo: File,
+    carteiraId: string,
+  ): Promise<{ totalArquivo: number; opcoes: number; nomeAba: string }> {
+    const buffer = await arquivo.arrayBuffer()
+    return sincronizarDoBuffer(carteiraId, buffer, arquivo.name)
   }
 
   function limparEstado() {
@@ -125,6 +137,7 @@ export const useNegociacoesOpcaoStore = defineStore('negociacoesOpcao', () => {
     erro,
     ultimaImportacao,
     carregar,
+    sincronizarDoBuffer,
     importarSubstituindo,
     limparEstado,
   }

@@ -2,8 +2,10 @@
 import { ref } from 'vue'
 import { useCarteiraStore } from '@/stores/carteira'
 import { formatarMoeda, formatarData } from '@/utils/formatters'
+import ModalImportacao from '@/components/importacao/ModalImportacao.vue'
 
 const store = useCarteiraStore()
+const modalAberto = ref(false)
 const confirmandoId = ref<string | null>(null)
 const excluindo = ref(false)
 
@@ -19,14 +21,39 @@ async function excluir(id: string) {
   <div class="page">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Extrato de Importações</h1>
+        <h1 class="page-title">Extrato de importações</h1>
         <p class="page-sub">{{ store.importacoes.length }} importação(ões) registrada(s)</p>
       </div>
+      <button class="btn-importar" type="button" @click="modalAberto = true">
+        <i class="pi pi-upload" />
+        Importar planilha
+      </button>
+    </div>
+
+    <div class="instrucao-card">
+      <div class="instrucao-icon">
+        <i class="pi pi-info-circle" />
+      </div>
+      <div>
+        <p class="instrucao-titulo">Extrato completo da B3</p>
+        <p class="instrucao-desc">
+          No portal B3: <strong>Extrato de Custódia</strong> → data de referência → <strong>Exportar</strong> (<em>.xlsx</em>).
+          Envie o arquivo aqui: o sistema importa as abas de posição e, no mesmo arquivo, a aba
+          <strong>Negociação</strong> para alimentar a tela <strong>Derivativos</strong> (opções).
+          Várias importações são <strong>unidas</strong> na carteira: para cada ativo, vale a linha da importação mais recente.
+        </p>
+      </div>
+    </div>
+
+    <div class="dropzone-cta" role="button" tabindex="0" @click="modalAberto = true" @keydown.enter.prevent="modalAberto = true">
+      <i class="pi pi-upload dropzone-icon" />
+      <p class="dropzone-titulo">Arraste ou clique para importar</p>
+      <p class="dropzone-sub">Formatos aceitos: <strong>.xlsx</strong></p>
     </div>
 
     <div v-if="!store.importacoes.length" class="empty-state">
       <i class="pi pi-file" style="font-size:32px;color:var(--color-border)" />
-      <p>Nenhuma importação encontrada. Importe uma planilha para começar.</p>
+      <p>Nenhuma importação ainda. Use o botão acima ou a área tracejada.</p>
     </div>
 
     <div v-else class="card">
@@ -65,7 +92,6 @@ async function excluir(id: string) {
               {{ formatarData(imp.created_at.substring(0, 10)) }}
             </td>
             <td class="acoes-cell">
-              <!-- Confirmação inline de exclusão -->
               <template v-if="confirmandoId === imp.id">
                 <span class="confirm-text">Excluir?</span>
                 <button class="btn-sim" :disabled="excluindo" @click="excluir(imp.id)">
@@ -87,14 +113,44 @@ async function excluir(id: string) {
         </tbody>
       </table>
     </div>
+
+    <ModalImportacao v-if="modalAberto" @fechar="modalAberto = false" />
   </div>
 </template>
 
 <style scoped>
 .page { display: flex; flex-direction: column; gap: 1.25rem; }
-.page-header { display: flex; align-items: flex-start; justify-content: space-between; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
 .page-title { font-size: 20px; font-weight: 700; color: var(--color-text); margin: 0 0 0.2rem; }
 .page-sub { font-size: 13px; color: var(--color-text-muted); margin: 0; }
+
+.btn-importar {
+  display: flex; align-items: center; gap: 0.4rem;
+  background-color: var(--color-primary); color: #fff; border: none;
+  border-radius: 9px; padding: 0.5rem 1.1rem; font-size: 14px;
+  font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s;
+}
+.btn-importar:hover { background-color: var(--color-primary-hover); }
+
+.instrucao-card {
+  display: flex; align-items: flex-start; gap: 1rem;
+  background: #f3eeff; border: 1px solid #d4c5f0;
+  border-radius: 12px; padding: 1rem 1.25rem;
+}
+.instrucao-icon { color: var(--color-primary); font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.instrucao-titulo { font-size: 13px; font-weight: 600; color: var(--color-primary); margin: 0 0 0.25rem; }
+.instrucao-desc { font-size: 12px; color: #4a3080; margin: 0; line-height: 1.6; }
+
+.dropzone-cta {
+  border: 2px dashed var(--color-border); border-radius: 14px;
+  padding: 2rem; text-align: center; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+}
+.dropzone-cta:hover { border-color: var(--color-primary); background: #f3eeff; }
+.dropzone-icon { font-size: 28px; color: var(--color-primary); margin-bottom: 0.25rem; }
+.dropzone-titulo { font-size: 15px; font-weight: 600; color: var(--color-text); margin: 0; }
+.dropzone-sub { font-size: 12px; color: var(--color-text-muted); margin: 0; }
 
 .card { background: var(--color-surface); border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: hidden; }
 
@@ -142,7 +198,7 @@ async function excluir(id: string) {
 
 .empty-state {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 240px; gap: 0.75rem; text-align: center;
+  min-height: 120px; gap: 0.75rem; text-align: center;
   background: var(--color-surface); border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06); color: var(--color-text-muted); font-size: 13px;
 }
