@@ -1,20 +1,17 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCarteiraStore } from '@/stores/carteira'
 import { useIsMobile } from '@/composables/useIsMobile'
 import AppSidebar from './AppSidebar.vue'
 import AppTopbar from './AppTopbar.vue'
-import ModalImportacao from '@/components/importacao/ModalImportacao.vue'
 import MobileDashboard from '@/pages/MobileDashboard.vue'
 
 const authStore = useAuthStore()
 const carteiraStore = useCarteiraStore()
 const route = useRoute()
 const { isMobile } = useIsMobile()
-
-const modalImportacaoAberto = ref(false)
 
 // Reage ao usuário assim que ele estiver disponível (inclusive se já estiver no momento do mount)
 watch(
@@ -48,16 +45,11 @@ watch(
   <!-- Desktop: layout padrão com sidebar e topbar -->
   <div v-else class="app-shell">
     <AppSidebar />
-    <AppTopbar @importar="modalImportacaoAberto = true" />
+    <AppTopbar />
 
     <main class="app-content">
       <RouterView />
     </main>
-
-    <ModalImportacao
-      v-if="modalImportacaoAberto"
-      @fechar="modalImportacaoAberto = false"
-    />
   </div>
 </template>
 

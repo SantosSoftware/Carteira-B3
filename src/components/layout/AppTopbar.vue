@@ -1,20 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCarteiraStore } from '@/stores/carteira'
-import { useRouter, useRoute } from 'vue-router'
-
-const emit = defineEmits<{
-  importar: []
-}>()
+import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
 const carteiraStore = useCarteiraStore()
 const router = useRouter()
-const route = useRoute()
-
-/** Evita confundir com a importação exclusiva da página Derivativos. */
-const mostrarImportarCustodia = computed(() => route.name !== 'derivativos')
 
 const menuAberto = ref(false)
 
@@ -33,15 +25,6 @@ async function sair() {
 
     <!-- Ações -->
     <div class="topbar-actions">
-      <button
-        v-if="mostrarImportarCustodia"
-        class="btn-importar"
-        @click="emit('importar')"
-      >
-        <i class="pi pi-upload" />
-        <span>Importar Planilha</span>
-      </button>
-
       <!-- Avatar / Menu usuário -->
       <div class="user-menu">
         <button class="avatar-btn" @click="menuAberto = !menuAberto">
@@ -87,26 +70,6 @@ async function sair() {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-}
-
-.btn-importar {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background-color: var(--color-primary);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.45rem 0.9rem;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s;
-  font-family: inherit;
-}
-
-.btn-importar:hover {
-  background-color: var(--color-primary-hover);
 }
 
 .user-menu {

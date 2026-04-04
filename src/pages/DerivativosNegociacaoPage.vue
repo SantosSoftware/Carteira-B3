@@ -67,13 +67,13 @@ const chartMes = computed(() => ({
     {
       label: 'Compras (R$)',
       data: mesesOrdenados.value.map((k) => totaisPorMes.value.get(k)?.compra ?? 0),
-      backgroundColor: '#2563eb',
+      backgroundColor: '#dc2626',
       borderRadius: 4,
     },
     {
       label: 'Vendas (R$)',
       data: mesesOrdenados.value.map((k) => totaisPorMes.value.get(k)?.venda ?? 0),
-      backgroundColor: '#ea580c',
+      backgroundColor: '#16a34a',
       borderRadius: 4,
     },
   ],
@@ -134,13 +134,13 @@ const chartTicker = computed(() => ({
     {
       label: 'Compras (R$)',
       data: tickersTop.value.map((x) => x.compra),
-      backgroundColor: '#2563eb',
+      backgroundColor: '#dc2626',
       borderRadius: 4,
     },
     {
       label: 'Vendas (R$)',
       data: tickersTop.value.map((x) => x.venda),
-      backgroundColor: '#ea580c',
+      backgroundColor: '#16a34a',
       borderRadius: 4,
     },
   ],
@@ -230,7 +230,7 @@ function abrirSeletor() {
           A importação grava somente na tabela <strong>negociações em opções</strong> (análise de compra/venda).
           O app <strong>não</strong> grava em <code>importacoes</code> nem em <code>posicoes</code> a partir daqui.
           Se a carteira mudou, a causa foi outra (por exemplo importação pelo menu
-          <RouterLink to="/importacoes">Importações</RouterLink> ou barra superior, ou cotações ao vivo na tela de Ativos).
+          <RouterLink to="/importacoes">Importações</RouterLink>, ou cotações ao vivo na tela de Ativos).
         </p>
       </div>
     </div>
@@ -547,10 +547,10 @@ function abrirSeletor() {
   font-weight: 700;
 }
 .resumo-val.compra {
-  color: #2563eb;
+  color: #dc2626;
 }
 .resumo-val.venda {
-  color: #ea580c;
+  color: #16a34a;
 }
 
 .grid-charts {

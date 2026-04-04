@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useCarteiraStore } from '@/stores/carteira'
 import { useAtivosManualStore, CATEGORIAS, getCategoriaInfo } from '@/stores/ativosManual'
 import MetricaCard from '@/components/carteira/MetricaCard.vue'
@@ -66,7 +67,7 @@ const resultadoConsolidado  = computed(() => patrimonioConsolidado.value - store
         </div>
         <h2 class="empty-title">Nenhuma posição importada</h2>
         <p class="empty-desc">
-          Clique em <strong>Importar Planilha</strong> na barra superior para começar.
+          No menu lateral, abra <RouterLink class="empty-link" to="/importacoes">Importar</RouterLink> e envie o extrato de custódia da B3 (<em>.xlsx</em>).
         </p>
       </div>
     </template>
@@ -267,4 +268,6 @@ const resultadoConsolidado  = computed(() => patrimonioConsolidado.value - store
 }
 .empty-title { font-size: 17px; font-weight: 600; color: var(--color-text); margin: 0; }
 .empty-desc  { font-size: 13px; color: var(--color-text-muted); margin: 0; max-width: 320px; }
+.empty-link  { color: var(--color-primary); font-weight: 600; text-decoration: none; }
+.empty-link:hover { text-decoration: underline; }
 </style>
